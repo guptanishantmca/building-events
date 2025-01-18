@@ -10,11 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
- 
+use App\Traits\ApiResponse;
+use App\Events\UserRegistered;
 
 class RegisteredUserController extends Controller
 {
-     
+    use ApiResponse;
     /**
      * Handle an incoming registration request.
      *
@@ -36,10 +37,15 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($request->password),
             ]);
         
-            return response()->json([
-                'message' => 'User registered successfully!',
-                'user' => $user,
-            ], 201); // Return a 201 status for created resources
+            // return response()->json([
+            //     'message' => 'User registered successfully!',
+            //     'user' => $user,
+            // ], 201); // Return a 201 status for created resources
+            auth()->login($user);
+            $token = $user->createToken('API Token')->plainTextToken;
+            event(new UserRegistered($user)); // Trigger the event
+            //return $this->successResponse($user, 'User registered successfully');
+            return response()->json(['token' => $token, 'user' => $user]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -50,4 +56,7 @@ class RegisteredUserController extends Controller
 
         //return redirect(route('dashboard', absolute: false));
     }
+
+     
+
 }
