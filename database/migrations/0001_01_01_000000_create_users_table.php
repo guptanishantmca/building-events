@@ -14,9 +14,9 @@ return new class extends Migration
         // Users Table
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->string('name');
             $table->string('last_name');
-             
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('profile_status', ['active', 'inactive', 'suspended'])->default('active');
@@ -26,6 +26,7 @@ return new class extends Migration
         // User Profiles Table
         Schema::create('user_profiles', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('profile_picture')->nullable();
             $table->enum('role', ['freelancer', 'client', 'admin']);
@@ -40,23 +41,26 @@ return new class extends Migration
         });
 
         // Roles Table
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
+        // Schema::create('roles', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->uuid('uuid')->unique(); // External reference
+        //     $table->string('name')->unique();
+        //     $table->timestamps();
+        // });
 
         // User Roles Table
-        Schema::create('user_roles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
-            $table->timestamps();
-        });
+        // Schema::create('user_roles', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->uuid('uuid')->unique(); // External reference
+        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        //     $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+        //     $table->timestamps();
+        // });
 
-        // work Table
+        // Work Table
         Schema::create('work', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('client_id')->constrained('user_profiles')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
@@ -73,6 +77,7 @@ return new class extends Migration
         // Proposals Table
         Schema::create('proposals', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('work_id')->constrained('work')->onDelete('cascade');
             $table->foreignId('freelancer_id')->constrained('user_profiles')->onDelete('cascade');
             $table->text('cover_letter')->nullable();
@@ -84,6 +89,7 @@ return new class extends Migration
         // Contracts Table
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('work_id')->constrained('work')->onDelete('cascade');
             $table->foreignId('client_id')->constrained('user_profiles')->onDelete('cascade');
             $table->foreignId('freelancer_id')->constrained('user_profiles')->onDelete('cascade');
@@ -98,6 +104,7 @@ return new class extends Migration
         // Payments Table
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
             $table->decimal('amount', 15, 2);
             $table->timestamp('payment_date')->useCurrent();
@@ -108,6 +115,7 @@ return new class extends Migration
         // Messages Table
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('sender_id')->constrained('user_profiles')->onDelete('cascade');
             $table->foreignId('receiver_id')->constrained('user_profiles')->onDelete('cascade');
             $table->text('content');
@@ -118,6 +126,7 @@ return new class extends Migration
         // Categories Table
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->string('name');
             $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->timestamps();
@@ -126,6 +135,7 @@ return new class extends Migration
         // Reviews Table
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
             $table->foreignId('reviewer_id')->constrained('user_profiles')->onDelete('cascade');
             $table->foreignId('reviewee_id')->constrained('user_profiles')->onDelete('cascade');
@@ -137,6 +147,7 @@ return new class extends Migration
         // Notifications Table
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique(); // External reference
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->enum('type', ['proposal', 'payment', 'work', 'message', 'review']);
             $table->text('content')->nullable();
@@ -144,12 +155,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Password Reset Tokens Table
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Sessions Table
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
@@ -157,6 +170,14 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->longText('payload');
             $table->integer('last_activity')->index();
+        });
+
+        Schema::table('roles', function (Blueprint $table) {
+            $table->uuid('uuid')->unique()->after('id');
+        });
+
+        Schema::table('permissions', function (Blueprint $table) {
+            $table->uuid('uuid')->unique()->after('id');
         });
     }
 
@@ -167,8 +188,8 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('user_profiles');
-        Schema::dropIfExists('roles');
-        Schema::dropIfExists('user_roles');
+       // Schema::dropIfExists('roles');
+       // Schema::dropIfExists('user_roles');
         Schema::dropIfExists('work');
         Schema::dropIfExists('proposals');
         Schema::dropIfExists('contracts');
@@ -179,5 +200,11 @@ return new class extends Migration
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::table('roles', function (Blueprint $table) {
+            $table->dropColumn('uuid');
+        });
+        Schema::table('permissions', function (Blueprint $table) {
+            $table->dropColumn('uuid');
+        });
     }
 };
