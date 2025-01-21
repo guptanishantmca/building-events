@@ -11,13 +11,136 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Users Table
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('last_name');
+             
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->rememberToken();
+            $table->enum('profile_status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->timestamps();
+        });
+
+        // User Profiles Table
+        Schema::create('user_profiles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('profile_picture')->nullable();
+            $table->enum('role', ['freelancer', 'client', 'admin']);
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->decimal('hourly_rate', 10, 2)->nullable();
+            $table->json('skills')->nullable();
+            $table->string('location')->nullable();
+            $table->string('company_name')->nullable();
+            $table->string('website')->nullable();
+            $table->timestamps();
+        });
+
+        // Roles Table
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
+
+        // User Roles Table
+        Schema::create('user_roles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        // work Table
+        Schema::create('work', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('client_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->string('title');
+            $table->text('description');
+            $table->decimal('budget', 15, 2)->nullable();
+            $table->decimal('hourly_rate', 10, 2)->nullable();
+            $table->enum('work_type', ['fixed', 'hourly']);
+            $table->string('category')->nullable();
+            $table->string('sub_category')->nullable();
+            $table->json('skills_required')->nullable();
+            $table->enum('status', ['open', 'in_progress', 'completed', 'cancelled'])->default('open');
+            $table->timestamps();
+        });
+
+        // Proposals Table
+        Schema::create('proposals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('work_id')->constrained('work')->onDelete('cascade');
+            $table->foreignId('freelancer_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->text('cover_letter')->nullable();
+            $table->decimal('bid_amount', 15, 2)->nullable();
+            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->timestamps();
+        });
+
+        // Contracts Table
+        Schema::create('contracts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('work_id')->constrained('work')->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->foreignId('freelancer_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->enum('payment_type', ['fixed', 'hourly']);
+            $table->decimal('amount', 15, 2);
+            $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
+            $table->timestamps();
+        });
+
+        // Payments Table
+        Schema::create('payments', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
+            $table->decimal('amount', 15, 2);
+            $table->timestamp('payment_date')->useCurrent();
+            $table->enum('payment_method', ['credit_card', 'paypal', 'bank_transfer'])->nullable();
+            $table->timestamps();
+        });
+
+        // Messages Table
+        Schema::create('messages', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sender_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->foreignId('receiver_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->text('content');
+            $table->boolean('read_status')->default(false);
+            $table->timestamps();
+        });
+
+        // Categories Table
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        // Reviews Table
+        Schema::create('reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
+            $table->foreignId('reviewer_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->foreignId('reviewee_id')->constrained('user_profiles')->onDelete('cascade');
+            $table->integer('rating')->check('rating >= 1 AND rating <= 5');
+            $table->text('comment')->nullable();
+            $table->timestamps();
+        });
+
+        // Notifications Table
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->enum('type', ['proposal', 'payment', 'work', 'message', 'review']);
+            $table->text('content')->nullable();
+            $table->boolean('read_status')->default(false);
             $table->timestamps();
         });
 
@@ -43,6 +166,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('user_profiles');
+        Schema::dropIfExists('roles');
+        Schema::dropIfExists('user_roles');
+        Schema::dropIfExists('work');
+        Schema::dropIfExists('proposals');
+        Schema::dropIfExists('contracts');
+        Schema::dropIfExists('payments');
+        Schema::dropIfExists('messages');
+        Schema::dropIfExists('categories');
+        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('notifications');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
