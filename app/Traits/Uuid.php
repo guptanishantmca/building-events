@@ -2,10 +2,14 @@
 namespace App\Traits;
 use Illuminate\Support\Str;
 trait Uuid {
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
+
         static::creating(function ($model) {
-            $model->id = (string)Str::uuid();
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
         });
     }
     public function getIncrementing(): bool {
