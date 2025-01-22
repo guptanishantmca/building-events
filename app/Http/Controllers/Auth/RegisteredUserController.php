@@ -44,7 +44,7 @@ class RegisteredUserController extends Controller
             //     'user' => $user,
             // ], 201); // Return a 201 status for created resources
             auth()->login($user);
-            $token = $user->createToken('API Token')->plainTextToken;
+            $token = $user->createToken('token')->plainTextToken;
             event(new UserRegistered($user)); // Trigger the event
             //return $this->successResponse($user, 'User registered successfully');
             return response()->json(['token' => $token, 'user' => $user]);
