@@ -6,13 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use App\Traits\Uuid;
+use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasRoles, HasApiTokens, HasFactory, Notifiable, Uuid;
+    use HasFactory, Notifiable;
+    use HasRoles, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -24,16 +24,8 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
-        'uuid',
     ];
 
-    protected $keyType = 'string'; // Specify UUIDs as the key type
-    public $incrementing = false; // Disable auto-incrementing IDs
-
-    public function tokens()
-    {
-        return $this->morphMany(\Laravel\Sanctum\PersonalAccessToken::class, 'tokenable', 'tokenable_type', 'tokenable_id', 'uuid');
-    }
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -56,6 +48,4 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-    
 }

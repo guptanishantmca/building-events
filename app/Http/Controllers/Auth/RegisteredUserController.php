@@ -4,18 +4,19 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserProfile;
 //use Illuminate\Auth\Events\Registered;
 //use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use App\Traits\ApiResponse;
 use App\Events\UserRegistered;
+ 
 
 class RegisteredUserController extends Controller
 {
-    use ApiResponse;
+   
     /**
      * Handle an incoming registration request.
      *
@@ -45,6 +46,12 @@ class RegisteredUserController extends Controller
             // ], 201); // Return a 201 status for created resources
             auth()->login($user);
             $token = $user->createToken('token')->plainTextToken;
+            $userProfile = UserProfile::create([
+                'title' => $request->name,
+                'user_id' => $user->id,
+                
+                
+            ]);
             event(new UserRegistered($user)); // Trigger the event
             //return $this->successResponse($user, 'User registered successfully');
             return response()->json(['token' => $token, 'user' => $user]);

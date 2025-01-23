@@ -4,14 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
  
-class Work extends Model
+class UserProfile extends Model
 {
   
     protected $fillable = [
         
         'title',
-        'description',
-        'client_id',
+        
+        'user_id',
         
     ];
     

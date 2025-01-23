@@ -11,26 +11,26 @@ use App\Models\Work;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use App\Traits\ApiResponse;
+ 
  
 
 class WorkController extends Controller
 {
     public function createJob(Request $request) 
     {
-        
+       //dd($request);
         
         try {
             $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
+                'jobTitle' => 'required|string|max:255',
+                'jobDescription' => 'required|string',
                 
             ]);
         
             $Work = Work::create([
-                'title' => $request->title,
-                'description' => $request->description,
-               
+                'title' => $request->jobTitle,
+                'description' => $request->jobDescription,
+                'client_id' => Auth::id(),
                  
             ]);
         

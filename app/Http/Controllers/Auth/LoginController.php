@@ -5,10 +5,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Traits\ApiResponse;
+ 
 class LoginController extends Controller
 {
-    use ApiResponse;
+  
     public function login(Request $request)
     {
         $credentials = $request->validate([
