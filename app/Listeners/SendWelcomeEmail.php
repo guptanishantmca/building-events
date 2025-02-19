@@ -21,7 +21,7 @@ class SendWelcomeEmail
         try {
             Mail::to($event->user->email)->send(new WelcomeEmail($event->user));
             Log::info('Email successfully sent to: ' . $event->user->email);
-        } catch (\Exception $e) {
+        } catch (\Exception $e) { 
             Log::error('Failed to send email: ' . $e->getMessage());
         }
     }
