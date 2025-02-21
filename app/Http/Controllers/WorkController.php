@@ -38,7 +38,7 @@ class WorkController extends Controller
             return response()->json([  'work' => $Work]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Validation failed', 
                 'errors' => $e->errors(),
             ], 422);  
         }
