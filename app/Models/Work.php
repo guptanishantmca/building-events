@@ -11,7 +11,7 @@ class Work extends Model
         
         'title',
         'description',
-        'client_id',
+        'client_id', 
         
     ];
     
